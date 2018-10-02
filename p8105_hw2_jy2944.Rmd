@@ -1,0 +1,74 @@
+---
+title: "p8105_hw2_jy2944"
+author: "Jie Yu"
+date: 2018-10-01
+output: 
+  github_document:
+    toc: true
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE) # change the default global options in a document 
+
+library(tidyverse)
+library(readxl)
+
+Sys.setenv(LANG = "en") # change the system warning from Chinese to English
+```
+
+
+# Problem 1
+
+The problem focuses on NYC Transit data. 
+
+#### Data import and initial clearning
+
+```{r p1_initial_cleaning, message = FALSE}
+# import data
+transit_data = read_csv(file = "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  # clean names of the data frame
+  janitor::clean_names() %>%  
+  # select variables
+  select(line:route11, entry, vending, entrance_type, ada) %>%
+  # convert the variable entry from character to logical 
+  mutate(entry = recode(entry, "YES" = TRUE, "NO" = FALSE))
+```
+
+The above data frame `transit_data` contains 19 variables, which are line, station name, station latitude, station longitude, route served (route 1 to 11), entry, vending, entrance type, and ADA compliance (variable name "ada").  
+
+So far, I have cleaned names of the imported data frame, extracted the 19 variables which I need from the original dataset as well as placed the last 4 variables in a order that I want, and converted the variable entry from character (`YES` vs `NO`) to logical variable (`TRUE` vs `FALSE`).  
+
+The dimension of the resulting dataset is `r nrow(transit_data)` x `r ncol(transit_data)`.  
+
+Current data ar not tidy. The route variable is spread across eleven columns, which correspond to 11 routes. We need to fix that to make ourselves have only two columns for variable route: one for route number and one for route name.
+
+
+#### Some answers based in the data
+
+* There are `r nrow(distinct(transit_data, line, station_name))` distinct stations. 
+
+
+* `r length(which(transit_data$ada, TRUE))` stations are ADA compliant.
+
+* The proportion of station entrances / exits without vending allow entrance is `r nrow(subset(transit_data, vending == "NO" & entry == TRUE)) / nrow(subset(transit_data, vending == "NO"))`.  
+
+
+#### Reformat the data
+
+Then I reformat the data so that route number and route name are distinct variables.
+
+```{r p1_reformat_route}
+transit_data = transit_data %>%
+  # take the columns of variable route into key-value pairs.
+  gather(key = "route_number", value = "route_name", route1:route11) %>%
+  # split variable route_number into two columns
+  separate(route_number, into = c("route_str", "route_number"), sep = 5) %>%
+  # remove the variable route_str
+  select(-route_str)
+```
+
+There are `r length(which(transit_data$route_name == "A"))` stations which serve the A train.  
+
+Of the stations that serve the A train, `r nrow(subset(transit_data, route_name == "A" & ada == TRUE))` stations are ADA compliant.
+
+
