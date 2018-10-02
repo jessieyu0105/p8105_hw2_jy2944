@@ -21,7 +21,7 @@ Sys.setenv(LANG = "en") # change the system warning from Chinese to English
 
 The problem focuses on NYC Transit data. 
 
-#### Data import and initial clearning
+### Data import and initial clearning
 
 ```{r p1_initial_cleaning, message = FALSE}
 # import data
@@ -43,7 +43,7 @@ The dimension of the resulting dataset is `r nrow(transit_data)` x `r ncol(trans
 Current data ar not tidy. The route variable is spread across eleven columns, which correspond to 11 routes. We need to fix that to make ourselves have only two columns for variable route: one for route number and one for route name.
 
 
-#### Some answers based in the data
+### Some answers based in the data
 
 * There are `r nrow(distinct(transit_data, line, station_name))` distinct stations. 
 
@@ -53,7 +53,7 @@ Current data ar not tidy. The route variable is spread across eleven columns, wh
 * The proportion of station entrances / exits without vending allow entrance is `r nrow(subset(transit_data, vending == "NO" & entry == TRUE)) / nrow(subset(transit_data, vending == "NO"))`.  
 
 
-#### Reformat the data
+### Reformat the data
 
 Then I reformat the data so that route number and route name are distinct variables.
 
@@ -76,7 +76,7 @@ Of the stations that serve the A train, `r nrow(subset(transit_data, route_name 
 
 This problem uses the Mr. Trash Wheel dataset.
 
-#### Mr. Trash Wheel sheet
+### Mr. Trash Wheel sheet
 
 First, let us import data from Mr. Trash Wheel sheet and make a cleaning.
 
@@ -94,7 +94,7 @@ trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sh
 ```
 
 
-#### Precipitation data for 2016 and 2017
+### Precipitation data for 2016 and 2017
 
 Next, let us import data from 2016 & 2017 Precipitation sheets and tidy the precipitation data.
 
@@ -124,7 +124,7 @@ precipitation_data = bind_rows(precip_2016, precip_2017) %>%
 ```
 
 
-#### Desription about these data
+### Desription about these data
 
 After the above steps, we got two resulting data frames, `trash_data` and `precipitation_data`.  
 
