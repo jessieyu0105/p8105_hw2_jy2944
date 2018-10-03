@@ -48,7 +48,7 @@ Current data ar not tidy. The route variable is spread across eleven columns, wh
 * There are `r nrow(distinct(transit_data, line, station_name))` distinct stations. 
 
 
-* `r length(which(transit_data$ada, TRUE))` stations are ADA compliant.
+* `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
 
 * The proportion of station entrances / exits without vending allow entrance is `r nrow(subset(transit_data, vending == "NO" & entry == TRUE)) / nrow(subset(transit_data, vending == "NO"))`.  
 
@@ -67,9 +67,9 @@ transit_data = transit_data %>%
   select(-route_str)
 ```
 
-There are `r length(which(transit_data$route_name == "A"))` stations which serve the A train.  
+There are `r transit_data %>% filter(route_name == "A") %>% nrow()` stations which serve the A train. 
 
-Of the stations that serve the A train, `r nrow(subset(transit_data, route_name == "A" & ada == TRUE))` stations are ADA compliant.
+Of the stations that serve the A train, `r transit_data %>% filter(route_name == "A") %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
 
 
 # Problem 2
