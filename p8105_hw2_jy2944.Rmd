@@ -21,7 +21,7 @@ Sys.setenv(LANG = "en") # change the system warning from Chinese to English
 
 The problem focuses on NYC Transit data. 
 
-### Data import and initial clearning
+### Data import and initial cleaning
 
 ```{r p1_initial_cleaning, message = FALSE}
 # import data
@@ -43,7 +43,7 @@ The dimension of the resulting dataset is `r nrow(transit_data)` x `r ncol(trans
 Current data ar not tidy. The route variable is spread across eleven columns, which correspond to 11 routes. We need to fix that to make ourselves have only two columns for variable route: one for route number and one for route name.
 
 
-### Some answers based in the data
+### Some answers based on the data
 
 * There are `r nrow(distinct(transit_data, line, station_name))` distinct stations. 
 
@@ -83,7 +83,6 @@ First, let us import data from Mr. Trash Wheel sheet and make a cleaning.
 ```{r trash_data_tidy}
 # import data, specify the sheet and omit columns containing notes
 trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N258") %>%
-  # clean the names of the data frame
   janitor::clean_names() %>%
   # tidy name
   rename(weight = weight_tons, volume = volume_cubic_yards) %>%
@@ -138,4 +137,86 @@ Data frame `trash_data` contains information related to trash in a dumpster betw
 Data frame `precipitation_data` contains information related to precipitation between January 2016 and August 2017. There is `r nrow(precipitation_data)` observations and `r ncol(precipitation_data)` in total. Variables indlude month, year, and precipitaion for each month.
 
 * The total precipitaion in 2017 is `r sum(subset(precipitation_data, year == "2017")$precipitation)` inches.
+
+
+# Problem 3
+
+This problem uses the BRFSS data, and focus on the "Overall Health" topic.
+
+### Import and tidy data
+
+```{r brfss_data, warning = FALSE, message = FALSE}
+# download p8105.datasets
+devtools::install_github("p8105/p8105.datasets")
+library(p8105.datasets)
+# load BRFSS data from p8105.datasets
+data("brfss_smart2010")
+
+brfss_data = brfss_smart2010 %>%
+  janitor::clean_names() %>%
+  # format the data to use appropriate variable names
+  separate(locationdesc, into = c("state_str", "location"), sep = " - ") %>%
+  select(-state_str) %>%
+  rename(state_abbr = locationabbr) %>%
+  # focus on "Overall Health" topic
+  filter(topic == "Overall Health") %>%
+  # select the variables which I need
+  select(-(class:question),
+         -sample_size, 
+         -(confidence_limit_low:geo_location)) %>%
+  # structure data so that responses are variables taking the value of data_value
+  spread(key = response, value = data_value) %>%
+  # clean the new variable names (5 response variables)
+  janitor::clean_names() %>%
+  # place the response variables in a low-to-high order
+  select(year:location, poor, fair, good, very_good, excellent) %>%
+  # create a new variable showing the proportion of respnses that were "excellent" of "very good" (above "good")
+  mutate(above_good = very_good + excellent)
+```
+
+
+### Some answers based on the data
+
+```{r}
+count_state = count(brfss_data, state_abbr) %>%
+  # arrange the numbers in a descending order
+  arrange(desc(n))
+
+nrow(count_state)
+max(count(brfss_data, state_abbr)$n)
+head(count_state, 3)
+```
+
+
+* There are `r nrow(distinct(brfss_data, state_abbr, location))` unique locations being included in the dataset. Every state is represented. New Jersey the most observed state.
+
+* In 2002, the median of the proportion of sujects with "Excellent" response value is `r median(subset(brfss_data, year == "2002")$excellent, na.rm = TRUE)`%.
+
+* A histogram of "Excellent" response values in the year 2002.
+
+```{r histogram, warning = FALSE, message = FALSE}
+brfss_data %>%
+  filter(year == "2002") %>%
+  ggplot(aes(x = excellent)) + 
+  geom_histogram() +
+  labs(title = "Histogram of 'Excellent' response values in year 2002", 
+       x = "'Excellent' response values", 
+       y = "Frequency") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+```
+
+* Make a scatterplot showing the proportion of “Excellent” response values in New York County and Queens County in each year from 2002 to 2010.
+
+```{r scatterplot}
+brfss_data %>%
+  filter(state_abbr == "NY") %>%
+  filter(location == "New York County" | location == "Queens County") %>%
+  ggplot(aes(x = year, y = excellent)) +
+  geom_point(aes(color = location)) +
+  labs(title = "Scatterplot of the proportion of “Excellent” response values in New York County and Queens County from 2002 to 2010",
+       y = "proportion") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+```
+
 
