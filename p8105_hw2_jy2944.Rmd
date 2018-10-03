@@ -177,18 +177,7 @@ brfss_data = brfss_smart2010 %>%
 
 ### Some answers based on the data
 
-```{r}
-count_state = count(brfss_data, state_abbr) %>%
-  # arrange the numbers in a descending order
-  arrange(desc(n))
-
-nrow(count_state)
-max(count(brfss_data, state_abbr)$n)
-head(count_state, 3)
-```
-
-
-* There are `r nrow(distinct(brfss_data, state_abbr, location))` unique locations being included in the dataset. Every state is represented. New Jersey the most observed state.
+* `r nrow(distinct(brfss_data, state_abbr, location))` unique locations are included in the dataset. There are `r nrow(count(brfss_data, state_abbr) %>% arrange(desc(n)))` unique state abbreviations in variable `state_abbr`, so every state is represented (50 states and the District of Columbia). `r (count(brfss_data, state_abbr) %>% arrange(desc(n)))[1,1]` (New Jersey) is the most observed state.
 
 * In 2002, the median of the proportion of sujects with "Excellent" response value is `r median(subset(brfss_data, year == "2002")$excellent, na.rm = TRUE)`%.
 
