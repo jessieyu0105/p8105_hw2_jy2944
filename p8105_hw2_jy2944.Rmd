@@ -48,9 +48,9 @@ Current data ar not tidy. The route variable is spread across eleven columns, wh
 * There are `r nrow(distinct(transit_data, line, station_name))` distinct stations. 
 
 
-* `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
+* `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(ada == TRUE) %>% nrow()` distinct stations are ADA compliant.
 
-* The proportion of station entrances / exits without vending allow entrance is `r nrow(subset(transit_data, vending == "NO" & entry == TRUE)) / nrow(subset(transit_data, vending == "NO"))`.  
+* The proportion of station entrances / exits without vending allow entrance is `r (transit_data %>% filter(vending == "NO") %>% filter(entry == TRUE) %>% nrow()) / (transit_data %>% filter(vending == "NO") %>% nrow())`.  
 
 
 ### Reformat the data
@@ -67,9 +67,9 @@ transit_data = transit_data %>%
   select(-route_str)
 ```
 
-There are `r transit_data %>% filter(route_name == "A") %>% nrow()` stations which serve the A train. 
+* There are `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(route_name == "A") %>% nrow()` distinct stations which serve the A train. 
 
-Of the stations that serve the A train, `r transit_data %>% filter(route_name == "A") %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
+* Of the stations that serve the A train, `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(route_name == "A") %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
 
 
 # Problem 2
@@ -83,8 +83,8 @@ First, let us import data from Mr. Trash Wheel sheet and make a cleaning.
 ```{r trash_data_tidy}
 # import data, specify the sheet and omit columns containing notes
 trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N258") %>%
+  # tidy names
   janitor::clean_names() %>%
-  # tidy name
   rename(weight = weight_tons, volume = volume_cubic_yards) %>%
   # omit rows that do not include dempster-specific data
   filter(!is.na(dumpster)) %>%
