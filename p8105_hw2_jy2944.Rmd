@@ -82,7 +82,7 @@ First, let us import data from Mr. Trash Wheel sheet and make a cleaning.
 
 ```{r trash_data_tidy}
 # import data, specify the sheet and omit columns containing notes
-trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N258") %>%
+trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N338") %>%
   # tidy names
   janitor::clean_names() %>%
   rename(weight = weight_tons, volume = volume_cubic_yards) %>%
@@ -99,7 +99,7 @@ Next, let us import data from 2016 & 2017 Precipitation sheets and tidy the prec
 
 ```{r precipitation_data_tidy}
 # import precipitation data for 2016
-precip_2016 = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2016 Precipitation", range = "A2:B15") %>%
+precip_2016 = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "2016 Precipitation", range = "A2:B15") %>%
   janitor::clean_names() %>%
   # omit rows without month-specific data
   filter(!is.na(month)) %>%
@@ -107,7 +107,7 @@ precip_2016 = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", s
   mutate(year = "2016")
 
 # import precipitation data for 2017
-precip_2017 = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", sheet = "2017 Precipitation", range = "A2:B15") %>%
+precip_2017 = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "2017 Precipitation", range = "A2:B15") %>%
   janitor::clean_names() %>%
   # omit rows without month-specific and precipitation-specific data
   filter(!is.na(month), !is.na(total)) %>%
@@ -116,7 +116,7 @@ precip_2017 = read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", s
 # combine the dataset for 2016 and 2017
 precipitation_data = bind_rows(precip_2016, precip_2017) %>%
   # convert month to a character variable
-  mutate(month = c(month.name[1:12], month.name[1:8])) %>%
+  mutate(month = c(month.name[1:12], month.name[1:12])) %>%
   # make the name much more specific
   rename(precipitation = total)
 
@@ -134,7 +134,7 @@ Data frame `trash_data` contains information related to trash in a dumpster betw
 * The median number of sports balls in a dumpster in 2016 is `r median(subset(trash_data, year == "2016")$sports_balls)`.
 
 
-Data frame `precipitation_data` contains information related to precipitation between January 2016 and August 2017. There is `r nrow(precipitation_data)` observations and `r ncol(precipitation_data)` in total. Variables indlude month, year, and precipitaion for each month.
+Data frame `precipitation_data` contains information related to precipitation between January 2016 and December 2017. There is `r nrow(precipitation_data)` observations and `r ncol(precipitation_data)` in total. Variables indlude month, year, and precipitaion for each month.
 
 * The total precipitaion in 2017 is `r sum(subset(precipitation_data, year == "2017")$precipitation)` inches.
 
