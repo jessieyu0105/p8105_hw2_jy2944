@@ -14,6 +14,8 @@ library(tidyverse)
 library(readxl)
 
 Sys.setenv(LANG = "en") # change the system warning from Chinese to English
+
+options(scipen = 200) # do not use scientific notation
 ```
 
 
@@ -61,7 +63,7 @@ Then I reformat the data so that route number and route name are distinct variab
 transit_data = transit_data %>%
   # take the columns of variable route into key-value pairs.
   gather(key = "route_number", value = "route_name", route1:route11) %>%
-  # split variable route_number into two columns
+  # split the variable route_number into two columns
   separate(route_number, into = c("route_str", "route_number"), sep = 5) %>%
   # remove the variable route_str
   select(-route_str)
@@ -69,7 +71,7 @@ transit_data = transit_data %>%
 
 * There are `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(route_name == "A") %>% nrow()` distinct stations which serve the A train. 
 
-* Of the stations that serve the A train, `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(route_name == "A") %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
+* Of the distinct stations that serve the A train, `r transit_data %>% distinct(line, station_name, .keep_all = TRUE) %>% filter(route_name == "A") %>% filter(ada == TRUE) %>% nrow()` stations are ADA compliant.
 
 
 # Problem 2
@@ -78,11 +80,11 @@ This problem uses the Mr. Trash Wheel dataset.
 
 ### Mr. Trash Wheel sheet
 
-First, let us import data from Mr. Trash Wheel sheet and make a cleaning.
+First, let us import data from Mr. Trash Wheel sheet and tidy it.
 
 ```{r trash_data_tidy}
 # import data, specify the sheet and omit columns containing notes
-trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "Mr. Trash Wheel", range = "A2:N338") %>%
+trash_data = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "Mr. Trash Wheel", range = cell_cols("A:N")) %>%
   # tidy names
   janitor::clean_names() %>%
   rename(weight = weight_tons, volume = volume_cubic_yards) %>%
@@ -109,8 +111,7 @@ precip_2016 = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", s
 # import precipitation data for 2017
 precip_2017 = read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", sheet = "2017 Precipitation", range = "A2:B15") %>%
   janitor::clean_names() %>%
-  # omit rows without month-specific and precipitation-specific data
-  filter(!is.na(month), !is.na(total)) %>%
+  filter(!is.na(month)) %>%
   mutate(year = "2017")
 
 # combine the dataset for 2016 and 2017
@@ -118,8 +119,9 @@ precipitation_data = bind_rows(precip_2016, precip_2017) %>%
   # convert month to a character variable
   mutate(month = c(month.name[1:12], month.name[1:12])) %>%
   # make the name much more specific
-  rename(precipitation = total)
-
+  rename(precipitation = total) %>% 
+  # change the order of variables
+  select(month, year, precipitation)
 ```
 
 
@@ -127,16 +129,22 @@ precipitation_data = bind_rows(precip_2016, precip_2017) %>%
 
 After the above steps, we got two resulting data frames, `trash_data` and `precipitation_data`.  
 
-Data frame `trash_data` contains information related to trash in a dumpster between May 2014 and August 2017. There is `r nrow(trash_data)` observations and `r ncol(trash_data)` in total. Variables include the weight and the volume of trash in each observed dumpster, as well as the numbers of specific types of trash such as plastic bottle, cigarette butts, and sports balls. Another interesting variable in this data frame is homes powered, which denotes the number of homes being powered by electricity generated from the trash in a dumpster.  
+Data frame `trash_data` contains information related to trash in a dumpster between May 2014 and July 2018. There is `r nrow(trash_data)` observations and `r ncol(trash_data)` variables in total. Variables include the weight and the volume of trash in each observed dumpster, as well as the numbers of specific trash such as plastic bottles, cigarette butts, or sports balls. Another interesting variable in this data frame is homes powered, which denotes the number of homes being powered by electricity generated from the trash in each dumpster.  
 
-* The average weight of trash in a dumpster in year 2014, 2015, and 2016 are `r round(mean(subset(trash_data, year == "2014")$weight), 2)` tons, `r round(mean(subset(trash_data, year == "2015")$weight), 2)` tons, and `r round(mean(subset(trash_data, year == "2016")$weight), 2)` tons, respectively.
-* The volume range of trash in a dumpster in 2015 is `r range(subset(trash_data, year == "2015")$volume)[2] - range(subset(trash_data, year == "2015")$volume)[1]` cubic yards.
-* The median number of sports balls in a dumpster in 2016 is `r median(subset(trash_data, year == "2016")$sports_balls)`.
+* The average weight of trash in a dumpster in year 2014, 2015, and 2016 are `r round(mean((trash_data %>% filter(year == "2014"))$weight), 2)` tons, `r round(mean((trash_data %>% filter(year == "2015"))$weight), 2)` tons, and `r round(mean((trash_data %>% filter(year == "2016"))$weight), 2)` tons, respectively.
+
+* The average volume of trash in a dumpster in 2014, 2015, and 2016 is `r round(mean((trash_data %>% filter(year == "2014"))$volume), 2)` cubic yards, `r round(mean((trash_data %>% filter(year == "2015"))$volume), 2)` cubic yards, `r round(mean((trash_data %>% filter(year == "2016"))$volume), 2)` cubic yards, respectively.
+
+* The total number of plastic bottles in all dumpsters observed in 2016 is `r sum((trash_data %>% filter(year == "2016"))$plastic_bottles)`.
+
+* The median number of sports balls in a dumpster in 2016 is `r median((trash_data %>% filter(year == "2016"))$sports_balls)`.
 
 
-Data frame `precipitation_data` contains information related to precipitation between January 2016 and December 2017. There is `r nrow(precipitation_data)` observations and `r ncol(precipitation_data)` in total. Variables indlude month, year, and precipitaion for each month.
+Data frame `precipitation_data` contains information related to precipitation between January 2016 and December 2017. There is `r nrow(precipitation_data)` observations and `r ncol(precipitation_data)` variables in total. Variables indlude month, year, and precipitaion for each month.
 
-* The total precipitaion in 2017 is `r sum(subset(precipitation_data, year == "2017")$precipitation)` inches.
+* The average precipitation in 2016 and 2017 is `r round(mean((precipitation_data %>% filter(year == "2016"))$precipitation), 2)` inches and `r round(mean((precipitation_data %>% filter(year == "2017"))$precipitation), 2)` inches, respectively.
+
+* The total precipitaion in 2017 is `r sum((precipitation_data %>% filter(year == "2017"))$precipitation)` inches.
 
 
 # Problem 3
